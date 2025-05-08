@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>After the Blast</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      height: 100%;
+      font-family: sans-serif;
+      background-color: black;
+      color: white;
+    }
+
+    @font-face {
+      font-family: myFont;
+      src: url('assets/digital-7 (italic).ttf');
+    }
+
+    #countdown-screen, #world-screen {
+      position: absolute;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      transition: opacity 1s;
+    }
+
+    #world-screen {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    #countdown {
+      font-size: 5em;
+      font-family: myFont;
+    }
+
+    #message {
+      font-family: myFont;
+      margin-top: 20px;
+      font-size: 3em;
+      text-align: center;
+    }
+
+    #container {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      background-color: black;
+      cursor: none;
+    }
+
+    #flash-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: black;
+      opacity: 0;
+      z-index: 100;
+      transition: background-color 1s, opacity 0.5s;
+      pointer-events: none;
+    }
+
+    #flashlight-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: black;
+      z-index: 1;
+      cursor: none;
+    }
+
+    #final-message {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-family: myFont;
+      font-size: 3em;
+      color: red;
+      text-align: center;
+      z-index: 200;
+      opacity: 0;
+      transition: opacity 1s;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="countdown-screen">
+    <div id="countdown"></div>
+    <div id="message">Preparing launch sequence...</div>
+  </div>
+
+  <div id="world-screen">
+    <canvas id="flashlight-canvas"></canvas>
+  </div>
+
+  <div id="flash-overlay"></div>
+  <div id="final-message">Peace, through absolute certainty.</div>
+
+  <audio id="siren" src="assets/siren.mp3"></audio>
+  <audio id="countdownBeep" src="assets/countdown.mp3"></audio>
+
+  <script>
+    const countdownEl = document.getElementById('countdown');
+    const countdownScreen = document.getElementById('countdown-screen');
+    const worldScreen = document.getElementById('world-screen');
+    const flashOverlay = document.getElementById('flash-overlay');
+    const finalMessage = document.getElementById('final-message');
+    const siren = document.getElementById('siren');
+    const beep = document.getElementById('countdownBeep');
+
+    const flashlightCanvas = document.getElementById('flashlight-canvas');
+    const ctx = flashlightCanvas.getContext('2d');
+
+    flashlightCanvas.width = window.innerWidth;
+    flashlightCanvas.height = window.innerHeight;
+
+    const disasterImage = new Image();
+    disasterImage.src = 'assets/after.png';
+
+    let mouseX = -9999;
+    let mouseY = -9999;
+
+    disasterImage.onload = () => {
+      function render() {
+        ctx.clearRect(0, 0, flashlightCanvas.width, flashlightCanvas.height);
+        ctx.fillStyle = 'black';
+        ctx.fillRect(0, 0, flashlightCanvas.width, flashlightCanvas.height);
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(mouseX, mouseY, 100, 0, Math.PI * 2);
+        ctx.clip();
+        ctx.drawImage(disasterImage, 0, 0, flashlightCanvas.width, flashlightCanvas.height);
+        ctx.restore();
+
+        requestAnimationFrame(render);
+      }
+
+      render();
+    };
+
+    flashlightCanvas.addEventListener('mousemove', (e) => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+    });
+
+    setTimeout(() => {
+      let count = 10;
+      countdownEl.textContent = count;
+      beep.play();
+      const interval = setInterval(() => {
+        count--;
+        if (count > 0) {
+          countdownEl.textContent = count;
+        } else {
+          clearInterval(interval);
+          countdownEl.textContent = '';
+          flashOverlay.style.opacity = 1;
+
+          setTimeout(() => {
+            flashOverlay.style.backgroundColor = 'red';
+          }, 600);
+
+          setTimeout(() => {
+            flashOverlay.style.opacity = 0;
+            countdownScreen.style.opacity = 0;
+            worldScreen.style.opacity = 1;
+            worldScreen.style.pointerEvents = 'auto';
+            finalMessage.style.opacity = 1;
+            siren.play();
+          }, 1600);
+        }
+      }, 1000);
+    }, 3000);
+  </script>
+</body>
+</html>
